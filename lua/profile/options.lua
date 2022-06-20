@@ -284,7 +284,6 @@ local servers = {
   "html", -- npm i -g vscode-langservers-extracted
   "pyright", --pip install pyright
   "vimls", -- npm install -g vim-language-server
-  --"sumneko_lua", -- https://github.com/sumneko/lua-language-server/wiki/Build-and-Run
   "tsserver" -- npm install -g typescript typescript-language-server
 }
 for _, lsp in ipairs(servers) do
@@ -406,8 +405,8 @@ local cmp = require 'cmp'
       end,
     },
     window = {
-      -- completion = cmp.config.window.bordered(),
-      -- documentation = cmp.config.window.bordered(),
+       completion = cmp.config.window.bordered(),
+       documentation = cmp.config.window.bordered(),
     },
     mapping = cmp.mapping.preset.insert({
       ['<C-b>'] = cmp.mapping.scroll_docs(-4),
@@ -423,6 +422,7 @@ local cmp = require 'cmp'
       -- { name = 'ultisnips' }, -- For ultisnips users.
       -- { name = 'snippy' }, -- For snippy users.
       {name = 'cmp_tabnine'},
+      {name = 'git'},
     }, {
       { name = 'buffer' },
     })
@@ -454,6 +454,8 @@ local cmp = require 'cmp'
       { name = 'cmdline' }
     })
   })
+
+require("cmp_git").setup()
 
 local tabnine = require('cmp_tabnine.config')
 tabnine:setup({

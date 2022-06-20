@@ -46,7 +46,6 @@ packer.startup(function()
                       vim.fn.inputsave()
                       local name = vim.fn.input('Image name: ')
                       vim.fn.inputrestore()
-
                       if name == nil or name == '' then
                           return os.date('%y-%m-%d-%H-%M-%S')
                       end
@@ -121,6 +120,7 @@ packer.startup(function()
   use 'hrsh7th/cmp-buffer'
   use 'hrsh7th/cmp-path'
   use 'hrsh7th/cmp-cmdline'
+  use({"petertriho/cmp-git", requires = "nvim-lua/plenary.nvim"})
   use 'saadparwaiz1/cmp_luasnip'
   use 'L3MON4D3/LuaSnip' -- Snippets plugin
  	use {'tzachar/cmp-tabnine', run='./install.sh', requires = 'hrsh7th/nvim-cmp'}
