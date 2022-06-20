@@ -219,6 +219,12 @@ nvim_tree_events.on_tree_close(function ()
 end)
 -- end barbe
 
+-- Enable telescope fzf native
+require('telescope').load_extension 'fzf'
+
+-- Enable telescope dap
+require('telescope').load_extension 'dap'
+
 -- Telescope
 require('telescope').setup {
   defaults = {
@@ -230,9 +236,6 @@ require('telescope').setup {
     },
   },
 }
-
--- Enable telescope fzf native
-require('telescope').load_extension 'fzf'
 
 --Add leader shortcuts
 vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers)
@@ -284,7 +287,11 @@ local servers = {
   "html", -- npm i -g vscode-langservers-extracted
   "pyright", --pip install pyright
   "vimls", -- npm install -g vim-language-server
-  "tsserver" -- npm install -g typescript typescript-language-server
+  "tsserver", -- npm install -g typescript typescript-language-server
+  "remark_ls",
+  "lemminx",
+  "vimls",
+  "yamlls",
 }
 for _, lsp in ipairs(servers) do
   lspconfig[lsp].setup {
@@ -415,6 +422,10 @@ local cmp = require 'cmp'
       ['<C-e>'] = cmp.mapping.abort(),
       ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     }),
+    enabled = function ()
+    return vim.api.nvim_buf_get_option(0, "buftype") ~= "prompt"
+      or require("cmp_dap").is_dap_buffer()
+    end,
     sources = cmp.config.sources({
       { name = 'nvim_lsp' },
       { name = 'vsnip' }, -- For vsnip users.
@@ -423,6 +434,7 @@ local cmp = require 'cmp'
       -- { name = 'snippy' }, -- For snippy users.
       {name = 'cmp_tabnine'},
       {name = 'git'},
+      {name = 'dap'},
     }, {
       { name = 'buffer' },
     })
@@ -470,3 +482,137 @@ tabnine:setup({
 	};
 	show_prediction_strength = false;
 })
+
+local dap = require('dap')
+
+require("dapui").setup({
+  icons = { expanded = "▾", collapsed = "▸" },
+  mappings = {
+    -- Use a table to apply multiple mappings
+    expand = { "<CR>", "<2-LeftMouse>" },
+    open = "o",
+    remove = "d",
+    edit = "e",
+    repl = "r",
+    toggle = "t",
+  },
+  -- Expand lines larger than the window
+  -- Requires >= 0.7
+  expand_lines = vim.fn.has("nvim-0.7"),
+  -- Layouts define sections of the screen to place windows.
+  -- The position can be "left", "right", "top" or "bottom".
+  -- The size specifies the height/width depending on position.
+  -- Elements are the elements shown in the layout (in order).
+  -- Layouts are opened in order so that earlier layouts take priority in window sizing.
+  layouts = {
+    {
+      elements = {
+      -- Elements can be strings or table with id and size keys.
+        { id = "scopes", size = 0.25 },
+        "breakpoints",
+        "stacks",
+        "watches",
+      },
+      size = 40,
+      position = "left",
+    },
+    {
+      elements = {
+        "repl",
+        "console",
+      },
+      size = 10,
+      position = "bottom",
+    },
+  },
+  floating = {
+    max_height = nil, -- These can be integers or a float between 0 and 1.
+    max_width = nil, -- Floats will be treated as percentage of your screen.
+    border = "single", -- Border style. Can be "single", "double" or "rounded"
+    mappings = {
+      close = { "q", "<Esc>" },
+    },
+  },
+  windows = { indent = 1 },
+  render = {
+    max_type_length = nil, -- Can be integer or nil.
+  }
+})
+
+require('dap-go').setup()
+
+  dap.adapters.go = function(callback, config)
+    local stdout = vim.loop.new_pipe(false)
+    local handle
+    local pid_or_err
+    local port = 38697
+    local opts = {
+      stdio = {nil, stdout},
+      args = {"dap", "-l", "127.0.0.1:" .. port},
+      detached = true
+    }
+    handle, pid_or_err = vim.loop.spawn("dlv", opts, function(code)
+      stdout:close()
+      handle:close()
+      if code ~= 0 then
+        print('dlv exited with code', code)
+      end
+    end)
+    assert(handle, 'Error running dlv: ' .. tostring(pid_or_err))
+    stdout:read_start(function(err, chunk)
+      assert(not err, err)
+      if chunk then
+        vim.schedule(function()
+          require('dap.repl').append(chunk)
+        end)
+      end
+    end)
+    -- Wait for delve to start
+    vim.defer_fn(
+      function()
+        callback({type = "server", host = "127.0.0.1", port = port})
+      end,
+      100)
+  end
+  -- https://github.com/go-delve/delve/blob/master/Documentation/usage/dlv_dap.md
+  dap.configurations.go = {
+    {
+      type = "go",
+      name = "Debug",
+      request = "launch",
+      program = "${file}"
+    },
+    {
+      type = "go",
+      name = "Debug test", -- configuration for debugging test files
+      request = "launch",
+      mode = "test",
+      program = "${file}"
+    },
+    -- works with go.mod packages and sub packages 
+    {
+      type = "go",
+      name = "Debug test (go.mod)",
+      request = "launch",
+      mode = "test",
+      program = "./${relativeFileDirname}"
+    } 
+}
+
+require("nvim-dap-virtual-text").setup {
+    enabled = true,                        -- enable this plugin (the default)
+    enabled_commands = true,               -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
+    highlight_changed_variables = true,    -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
+    highlight_new_as_changed = true,      -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
+    show_stop_reason = true,               -- show stop reason when stopped for exceptions
+    commented = true,                     -- prefix virtual text with comment string
+    only_first_definition = true,          -- only show virtual text at first definition (if there are multiple)
+    all_references = true,                -- show virtual text on all all references of the variable (not only definitions)
+    filter_references_pattern = '<module', -- filter references (not definitions) pattern when all_references is activated (Lua gmatch pattern, default filters out Python modules)
+    -- experimental features:
+    virt_text_pos = 'eol',                 -- position of virtual text, see `:h nvim_buf_set_extmark()`
+    all_frames = true,                    -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
+    virt_lines = false,                    -- show virtual lines instead of virtual text (will flicker!)
+    virt_text_win_col = nil,                -- position the virtual text at a fixed window column (starting from the first text column) ,
+                                           -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
+}

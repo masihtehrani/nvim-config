@@ -120,4 +120,10 @@ packer.startup(function()
   use 'L3MON4D3/LuaSnip' -- Snippets plugin
  	use {'tzachar/cmp-tabnine', run='./install.sh', requires = 'hrsh7th/nvim-cmp'}
   use 'brooth/far.vim'
+  use 'leoluz/nvim-dap-go'
+  use { "rcarriga/nvim-dap-ui", requires = {"mfussenegger/nvim-dap"} }
+  use 'mfussenegger/nvim-dap'
+  use 'theHamsta/nvim-dap-virtual-text'
+  use 'rcarriga/cmp-dap'
+  use 'nvim-telescope/telescope-dap.nvim'
 end)
