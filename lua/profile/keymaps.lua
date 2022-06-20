@@ -27,6 +27,21 @@ keymap("n", "<C-j>", "<C-w>j", opts)
 keymap("n", "<C-k>", "<C-w>k", opts)
 keymap("n", "<C-l>", "<C-w>l", opts)
 
+keymap("i", "<C-h>", "<Esc><C-w>h", opts)
+keymap("i", "<C-j>", "<Esc><C-w>j", opts)
+keymap("i", "<C-k>", "<Esc><C-w>k", opts)
+keymap("i", "<C-l>", "<Esc><C-w>l", opts)
+
+keymap("v", "<C-h>", "<Esc><C-w>h", opts)
+keymap("v", "<C-j>", "<Esc><C-w>j", opts)
+keymap("v", "<C-k>", "<Esc><C-w>k", opts)
+keymap("v", "<C-l>", "<Esc><C-w>l", opts)
+
+keymap("t", "<C-h>", "<C-\\><C-n><C-w>h", opts)
+keymap("t", "<C-j>", "<C-\\><C-n><C-w>j", opts)
+keymap("t", "<C-k>", "<C-\\><C-n><C-w>k", opts)
+keymap("t", "<C-l>", "<C-\\><C-n><C-w>l", opts)
+
 -- resize windows with arrow keys
 keymap("n", "<C-S-UP>", ":resize +2<cr>", opts)
 keymap("n", "<C-S-Down>", ":resize -2<cr>", opts)
@@ -78,7 +93,7 @@ keymap("t", "<esc>", "<c-\\><c-n>:q!<esc>", opts)
 
 -- comment
 --keymap("n", "<leader>/", "v:count == 0 ? '<Plug>(comment_toggle_current_blockwise)' : '<Plug>(comment_toggle_blockwise_count)'", opts)
-keymap("n", "<leader>t", ":ToggleTerm<cr>", opts)
+keymap("n", "<leader>t", ":split | resize 8 | term<CR>", opts)
 --keymap("n", "<leader>r", "<Plug>(coc-rename)", opts)
 --keymap("n", "<leader>Right", "<C-S-i>", opts)
 --keymap("n", "<leader>Left", "<C-S-o>", opts)
@@ -139,4 +154,9 @@ keymap('n', '<leader>bw', ':BufferOrderByWindowNumber<CR>', opts)
 keymap("n", "<C-U>",":redo<CR>", opts)
 keymap("n", "<C-s>",":w<CR>", opts)
 keymap("n", "w",":w<CR>", opts)
+
+-- close terminal
+keymap("t", "<Esc>","<C-\\><C-n>", opts)
+keymap("t", ":q!","<C-\\><C-n>:q!<CR>", opts)
+
 

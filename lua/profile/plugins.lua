@@ -89,11 +89,6 @@ packer.startup(function()
     }
   use 'ryanoasis/vim-devicons'
   use {
-      "akinsho/toggleterm.nvim", tag = 'v1.*', config = function()
-      require("toggleterm").setup()
-    end
-  }
-  use {
   "folke/which-key.nvim",
   config = function()
     require("which-key").setup {
