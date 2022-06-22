@@ -93,7 +93,7 @@ keymap("t", "<esc>", "<c-\\><c-n>:q!<esc>", opts)
 
 -- comment
 --keymap("n", "<leader>/", "v:count == 0 ? '<Plug>(comment_toggle_current_blockwise)' : '<Plug>(comment_toggle_blockwise_count)'", opts)
-keymap("n", "<leader>t", ":split | resize 8 | term<CR>", opts)
+keymap("n", "<C-t>", ":split | resize 8 | term<CR>", opts)
 --keymap("n", "<leader>r", "<Plug>(coc-rename)", opts)
 --keymap("n", "<leader>Right", "<C-S-i>", opts)
 --keymap("n", "<leader>Left", "<C-S-o>", opts)
@@ -177,4 +177,7 @@ keymap('n', '<leader>do', '<cmd>lua require"telescope".extensions.dap.configurat
 keymap('n', '<leader>dl', '<cmd>lua require"telescope".extensions.dap.list_breakpoints{}<CR>',opts)
 keymap('n', '<leader>dv', '<cmd>lua require"telescope".extensions.dap.variables{}<CR>', opts)
 keymap('n', '<leader>df', '<cmd>lua require"telescope".extensions.dap.frames{}<CR>', opts)
+
+-- local hitory
+keymap('n', '<F6>', ':LocalHistoryToggle<CR>', opts)
 

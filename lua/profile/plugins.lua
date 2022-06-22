@@ -87,6 +87,11 @@ packer.startup(function()
         'folke/tokyonight.nvim',
         branch = 'main',
     }
+    use {
+    'dinhhuy258/vim-local-history', 
+    branch = 'master', 
+  } -- hitory
+
   use 'ryanoasis/vim-devicons'
   use {
   "folke/which-key.nvim",
