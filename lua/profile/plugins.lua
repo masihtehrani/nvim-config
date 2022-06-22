@@ -110,16 +110,59 @@ packer.startup(function()
   use 'nvim-treesitter/nvim-treesitter-textobjects'
   use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
   use 'williamboman/nvim-lsp-installer' -- auto install  :LspInstall
-  use 'hrsh7th/nvim-cmp' -- Autocompletion plugin
+
+  use 'brooth/far.vim' -- search and replace plugin
+
+  -- cmp config
+  use({
+  "hrsh7th/nvim-cmp",
+  requires = {
+    {
+      "KadoBOT/cmp-plugins",
+      config = function()
+        require("cmp-plugins").setup({
+          files = { "*.lua" }  -- default
+        })
+      end,
+    },
+  }
+}) -- Autocompletion plugin
+
+  use 'saadparwaiz1/cmp_luasnip'
+  use 'L3MON4D3/LuaSnip' -- Snippets plugin
+
+  -- cmp extensions
   use 'hrsh7th/cmp-nvim-lsp'
   use 'hrsh7th/cmp-buffer'
   use 'hrsh7th/cmp-path'
   use 'hrsh7th/cmp-cmdline'
-  use({"petertriho/cmp-git", requires = "nvim-lua/plenary.nvim"})
-  use 'saadparwaiz1/cmp_luasnip'
-  use 'L3MON4D3/LuaSnip' -- Snippets plugin
- 	use {'tzachar/cmp-tabnine', run='./install.sh', requires = 'hrsh7th/nvim-cmp'}
-  use 'brooth/far.vim'
+  use ({"petertriho/cmp-git", requires = "nvim-lua/plenary.nvim"})
+ 	use ({'tzachar/cmp-tabnine', run='./install.sh', requires = 'hrsh7th/nvim-cmp'})
+  use 'f3fora/cmp-spell'
+  use 'uga-rosa/cmp-dictionary'
+  use 'hrsh7th/cmp-nvim-lsp-document-symbol'
+  use 'hrsh7th/cmp-nvim-lsp-signature-help'
+  use 'dmitmel/cmp-cmdline-history'
+  use "lukas-reineke/cmp-rg" --You need to have ripgrep installed. https://github.com/BurntSushi/ripgrep
+  use "vappolinario/cmp-clippy"
+  use 'hrsh7th/cmp-emoji'
+  use 'hrsh7th/cmp-nvim-lua'
+  use 'ray-x/cmp-treesitter'
+  use 'pontusk/cmp-vimwiki-tags'
+  use 'KadoBOT/cmp-plugins'
+  use 'octaltree/cmp-look'
+
+  -- cmp fuzzy buffer
+  use {'romgrk/fzy-lua-native', run = 'make'}
+  use {'tzachar/cmp-fuzzy-buffer', requires = {'hrsh7th/nvim-cmp', 'tzachar/fuzzy.nvim'}}
+  use {'tzachar/cmp-fuzzy-path', requires = {'hrsh7th/nvim-cmp', 'tzachar/fuzzy.nvim'}}
+
+  -- cmp zsh 
+  use 'tamago324/cmp-zsh'
+  use 'Shougo/deol.nvim' --     " recommended to use together.
+
+
+-- dap is nvim debugger
   use 'leoluz/nvim-dap-go'
   use { "rcarriga/nvim-dap-ui", requires = {"mfussenegger/nvim-dap"} }
   use 'mfussenegger/nvim-dap'

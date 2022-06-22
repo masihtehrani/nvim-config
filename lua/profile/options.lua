@@ -33,6 +33,8 @@ local options = {
     },
     -- shell = "/bin/bash",
     shell = "/usr/local/bin/zsh",
+    spell = true,
+    spelllang = 'en_us'
 }
 
 for k, v in pairs(options) do
@@ -402,7 +404,7 @@ local luasnip = require 'luasnip'
 -- nvim-cmp setup
 local cmp = require 'cmp'
  cmp.setup({
-    snippet = {
+  snippet = {
       -- REQUIRED - you must specify a snippet engine
       expand = function(args)
         vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
@@ -435,8 +437,61 @@ local cmp = require 'cmp'
       {name = 'cmp_tabnine'},
       {name = 'git'},
       {name = 'dap'},
-    }, {
-      { name = 'buffer' },
+      {name = 'spell'},
+      {name = 'path'},
+      {name = 'cmdline'},
+			{
+				name = "dictionary",
+				keyword_length = 2,
+			},
+      {
+        name = 'buffer',
+        -- Correct:
+        option = {
+          keyword_pattern = [[\k\+]],
+        }
+      },
+      { name = 'nvim_lsp_document_symbol' },
+      { name = 'nvim_lsp_signature_help' },
+      { name = 'cmdline_history' },
+      { 
+         name = 'fuzzy_buffer' ,
+         opts = {
+            get_bufnrs = function()  
+            local bufs = {}
+            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+              local buftype = vim.api.nvim_buf_get_option(buf, 'buftype')
+              if buftype ~= 'nofile' and buftype ~= 'prompt' then
+                bufs[#bufs + 1] = buf
+              end
+            end
+            return bufs
+            end
+         },
+      },
+    { name = 'fuzzy_path', options = {fd_timeout_msec = 1500} },
+    { name = 'rg' },
+    { name = 'zsh' },
+    { name = 'cmp-clippy',
+      opts = {
+        model = "EleutherAI/gpt-neo-2.7B", -- check code clippy vscode repo for options
+        key = "", -- huggingface.co api key
+      }
+    },    
+    { name = 'emoji' },
+    { name = 'nvim_lua' },
+    { name = 'treesitter' },
+    { name = 'vimwiki-tags' },
+    { name = 'plugins' },
+    {
+        name = 'look',
+        keyword_length = 2,
+        option = {
+            convert_case = true,
+            loud = true
+            --dict = '/usr/share/dict/words'
+        }
+    },
     })
   })
 
@@ -449,6 +504,10 @@ local cmp = require 'cmp'
     })
   })
 
+  require'cmp_zsh'.setup {
+    zshrc = true, -- Source the zshrc (adding all custom completions). default: false
+    filetypes = { "deoledit", "zsh" } -- Filetypes to enable cmp_zsh source. default: {"*"}
+  }
   -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
   cmp.setup.cmdline('/', {
     mapping = cmp.mapping.preset.cmdline(),
@@ -464,6 +523,12 @@ local cmp = require 'cmp'
       { name = 'path' }
     }, {
       { name = 'cmdline' }
+    })
+  })
+
+  cmp.setup.cmdline('/', {
+    sources = cmp.config.sources({
+      { name = 'fuzzy_buffer' }
     })
   })
 
@@ -616,3 +681,28 @@ require("nvim-dap-virtual-text").setup {
     virt_text_win_col = nil,                -- position the virtual text at a fixed window column (starting from the first text column) ,
                                            -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
 }
+
+	require("cmp_dictionary").setup({
+		dic = {
+			["*"] = { "/usr/share/dict/words" },
+			["lua"] = "path/to/lua.dic",
+			["javascript,typescript"] = { "path/to/js.dic", "path/to/js2.dic" },
+			filename = {
+				["xmake.lua"] = { "path/to/xmake.dic", "path/to/lua.dic" },
+			},
+			filepath = {
+				["%.tmux.*%.conf"] = "path/to/tmux.dic"
+			},
+			spelllang = {
+				en = "path/to/english.dic",
+			},
+		},
+		-- The following are default values.
+		exact = 2,
+		first_case_insensitive = false,
+		document = false,
+		document_command = "wn %s -over",
+		async = false, 
+		capacity = 5,
+		debug = false,
+	})
