@@ -236,7 +236,7 @@ require('telescope').setup {
   defaults = {
     mappings = {
       i = {
-        --['<C-u>'] = false,
+        ['<C-u>'] = false,
         ['<C-d>'] = false,
       },
     },
@@ -404,6 +404,8 @@ vim.keymap.set('n', '<leader>g', vim.diagnostic.setloclist)
 
 -- luasnip setup
 local luasnip = require 'luasnip'
+-- lspkind setup
+local lspkind = require'lspkind'
 
 -- nvim-cmp setup
 local cmp = require 'cmp'
@@ -421,17 +423,82 @@ local cmp = require 'cmp'
        completion = cmp.config.window.bordered(),
        documentation = cmp.config.window.bordered(),
     },
-    mapping = cmp.mapping.preset.insert({
-      ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-      ['<C-f>'] = cmp.mapping.scroll_docs(4),
-      ['<C-S-Space>'] = cmp.mapping.complete(),
-      ['<C-e>'] = cmp.mapping.abort(),
-      ['<CR>'] = cmp.mapping.confirm({ select = false }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-    }),
-    enabled = function ()
+    --mapping = cmp.mapping.preset.insert({
+    --  ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+    --  ['<C-f>'] = cmp.mapping.scroll_docs(4),
+    --  ['<C-S-Space>'] = cmp.mapping.complete(),
+    --  ['<C-e>'] = cmp.mapping.abort(),
+    --  ['<CR>'] = cmp.mapping.confirm({ select = false }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+    --}),
+  --mapping = cmp.mapping.preset.insert({
+  --        ['<Tab>'] = function(fallback)
+  --          if cmp.visible() then
+  --            cmp.select_next_item()
+  --          else
+  --            fallback()
+  --          end
+  --        end,
+  --        ['<S-Tab>'] = function(fallback)
+  --          if cmp.visible() then
+  --            cmp.select_prev_item()
+  --          else
+  --            fallback()
+  --          end
+  --        end,
+  --        ['<CR>'] = cmp.mapping.confirm({ select = true }),
+  --        ['<C-e>'] = cmp.mapping.abort(),
+  --        ['<Esc>'] = cmp.mapping.close(),
+  --        ['<C-d>'] = cmp.mapping.scroll_docs(-4),
+  --        ['<C-f>'] = cmp.mapping.scroll_docs(4),
+  --      }),
+    mapping = {
+    ['<C-p>'] = cmp.mapping.select_prev_item(),
+    ['<C-n>'] = cmp.mapping.select_next_item(),
+    ['<C-d>'] = cmp.mapping.scroll_docs(-4),
+    ['<C-f>'] = cmp.mapping.scroll_docs(4),
+    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<C-e>'] = cmp.mapping.close(),
+    ['<CR>'] = cmp.mapping.confirm {
+      behavior = cmp.ConfirmBehavior.Replace,
+      select = true,
+    },
+    ['<Tab>'] = function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      elseif luasnip.expand_or_jumpable() then
+        luasnip.expand_or_jump()
+      else
+        fallback()
+      end
+    end,
+    ['<S-Tab>'] = function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item()
+      elseif luasnip.jumpable(-1) then
+        luasnip.jump(-1)
+      else
+        fallback()
+      end
+    end,
+  },
+  enabled = function ()
     return vim.api.nvim_buf_get_option(0, "buftype") ~= "prompt"
       or require("cmp_dap").is_dap_buffer()
-    end,
+    end, 
+  formatting = {
+    format = lspkind.cmp_format({
+      mode = "symbol_text",
+      menu = ({
+        nvim_lsp = "[LSP]",
+        ultisnips = "[US]",
+        nvim_lua = "[Lua]",
+        path = "[Path]",
+        buffer = "[Buffer]",
+        emoji = "[Emoji]",
+	      omni = "[Omni]",
+      }),
+    }),
+  },
     sources = cmp.config.sources({
       { name = 'nvim_lsp' },
       { name = 'vsnip' }, -- For vsnip users.
@@ -710,3 +777,53 @@ require("nvim-dap-virtual-text").setup {
 		capacity = 5,
 		debug = false,
 	})
+
+require('lspkind').init({
+    -- DEPRECATED (use mode instead): enables text annotations
+    --
+    -- default: true
+    -- with_text = true,
+
+    -- defines how annotations are shown
+    -- default: symbol
+    -- options: 'text', 'text_symbol', 'symbol_text', 'symbol'
+    mode = 'symbol_text',
+
+    -- default symbol map
+    -- can be either 'default' (requires nerd-fonts font) or
+    -- 'codicons' for codicon preset (requires vscode-codicons font)
+    --
+    -- default: 'default'
+    preset = 'codicons',
+
+    -- override preset symbols
+    --
+    -- default: {}
+    symbol_map = {
+      Text = "",
+      Method = "",
+      Function = "",
+      Constructor = "",
+      Field = "ﰠ",
+      Variable = "",
+      Class = "ﴯ",
+      Interface = "",
+      Module = "",
+      Property = "ﰠ",
+      Unit = "塞",
+      Value = "",
+      Enum = "",
+      Keyword = "",
+      Snippet = "",
+      Color = "",
+      File = "",
+      Reference = "",
+      Folder = "",
+      EnumMember = "",
+      Constant = "",
+      Struct = "פּ",
+      Event = "",
+      Operator = "",
+      TypeParameter = ""
+    },
+})
