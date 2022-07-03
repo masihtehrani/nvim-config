@@ -10,7 +10,7 @@ local options = {
     undofile = true,
     undodir = string.format("%s/.undodir", vim.env.HOME),
     encoding = "UTF-8",
-    pastetoggle = "<F2>",
+    --pastetoggle = "<F2>",
     shiftwidth = 2,
     expandtab = true,
     hlsearch = true,
@@ -33,7 +33,8 @@ local options = {
     },
     shell = "/usr/local/bin/zsh",
     spell = true,
-    spelllang = 'en_us'
+    spelllang = 'en_us',
+    completeopt = {'menu', 'menuone', 'noselect'},
 }
 
 for k, v in pairs(options) do
@@ -47,8 +48,8 @@ vim.g.maplocalleader = ' '
 
 
 -- local history
-vim.g.local_history_path = '/Users/mahm0ud/.local-history'
-vim.g.local_history_max_changes = 1000
+--vim.g.local_history_path = '/Users/mahm0ud/.local-history'
+--vim.g.local_history_max_changes = 1000
 
 -- Autocommands
 local autocmd = vim.api.nvim_create_autocmd
@@ -227,6 +228,19 @@ end)
 
 -- Enable telescope fzf native
 require('telescope').load_extension 'fzf'
+-- You dont need to set any of these options. These are the default ones. Only
+-- the loading is important
+require('telescope').setup {
+  extensions = {
+    fzf = {
+      fuzzy = true,                    -- false will only do exact matching
+      override_generic_sorter = true,  -- override the generic sorter
+      override_file_sorter = true,     -- override the file sorter
+      case_mode = "smart_case",        -- or "ignore_case" or "respect_case"
+                                       -- the default case_mode is "smart_case"
+    }
+  }
+}
 
 -- Enable telescope dap
 require('telescope').load_extension 'dap'
@@ -259,26 +273,102 @@ end)
 vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles)
 --
 -- LSP settings
-local lspconfig = require 'lspconfig'
-local on_attach = function(_, bufnr)
-  local opts = { buffer = bufnr }
-  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-  vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-  --vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
-  vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, opts)
-  vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, opts)
-  vim.keymap.set('n', '<leader>wl', function()
-    vim.inspect(vim.lsp.buf.list_workspace_folders())
-  end, opts)
-  vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
-  vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
-  vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-  vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
-  vim.keymap.set('n', '<leader>sO', require('telescope.builtin').lsp_document_symbols, opts)
-  vim.api.nvim_buf_create_user_command(bufnr, "Format", vim.lsp.buf.formatting, {})
-end
+
+local lsp_installer = require('nvim-lsp-installer')
+lsp_installer.on_server_ready(function(server)
+  local opts = {
+        automatic_installation = true, -- automatically detect which servers to install (based on which servers are set up via lspconfig)
+    ui = {
+        icons = {
+            server_installed = "�",
+            server_pending = "�",
+            server_uninstalled = "�"
+        }
+    },
+  }
+  server:setup(opts)
+end)
+
+local lsp_defaults = {
+  flags = {
+    debounce_text_changes = 150,
+  },
+  capabilities = require('cmp_nvim_lsp').update_capabilities(
+    vim.lsp.protocol.make_client_capabilities()
+  ),
+  on_attach = function(client, bufnr)
+    vim.api.nvim_exec_autocmds('User', {pattern = 'LspAttached'})
+  end
+}
+
+local lspconfig = require('lspconfig')
+
+lspconfig.util.default_config = vim.tbl_deep_extend(
+  'force',
+  lspconfig.util.default_config,
+  lsp_defaults
+)
+--local on_attach = function(_, bufnr)
+--  local opts = { buffer = bufnr }
+--  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+--  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+--  vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+--  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+--  --vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+--  vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, opts)
+--  vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, opts)
+--  vim.keymap.set('n', '<leader>wl', function()
+--    vim.inspect(vim.lsp.buf.list_workspace_folders())
+--  end, opts)
+--  vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
+--  vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+--  vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+--  vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
+--  vim.keymap.set('n', '<leader>sO', require('telescope.builtin').lsp_document_symbols, opts)
+--  vim.api.nvim_buf_create_user_command(bufnr, "Format", vim.lsp.buf.formatting, {})
+--end
+vim.api.nvim_create_autocmd('User', {
+  pattern = 'LspAttached',
+  desc = 'LSP actions',
+  callback = function()
+    local bufmap = function(mode, lhs, rhs)
+      local opts = {buffer = true}
+      vim.keymap.set(mode, lhs, rhs, opts)
+    end
+
+    -- Displays hover information about the symbol under the cursor
+    bufmap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>')
+    bufmap('n', 'gs', '<cmd>lua vim.lsp.buf.document_symbol()<CR>')
+    bufmap('n', 'gw', '<cmd>lua vim.lsp.buf.workspace_symbol()<CR>')
+    -- Jump to the definition
+    bufmap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<cr>')
+    -- Jump to declaration
+    bufmap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<cr>')
+    -- Lists all the implementations for the symbol under the cursor
+    bufmap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>')
+    -- Jumps to the definition of the type symbol
+    bufmap('n', 'go', '<cmd>lua vim.lsp.buf.type_definition()<cr>')
+    -- Lists all the references 
+    bufmap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>')
+    -- Displays a function's signature information
+    bufmap('n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<cr>')
+    -- Renames all references to the symbol under the cursor
+    bufmap('n', '<F2>', '<cmd>lua vim.lsp.buf.rename()<cr>')
+    -- Selects a code action available at the current cursor position
+    bufmap('n', '<F4>', '<cmd>lua vim.lsp.buf.code_action()<cr>')
+    bufmap('x', '<F4>', '<cmd>lua vim.lsp.buf.range_code_action()<cr>')
+    bufmap('n', 'ga', '<cmd>CodeActionMenu<CR>')
+    -- Show diagnostics in a floating window
+    bufmap('n', 'gl', '<cmd>lua vim.diagnostic.open_float()<cr>')
+    -- Move to the previous diagnostic
+    bufmap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>')
+    -- Move to the next diagnostic
+    bufmap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>')
+  end
+})
+
+require"fidget".setup{} 
+
 -- Enable the following language servers 
 -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
 local servers = {
@@ -298,6 +388,26 @@ local servers = {
   "lemminx",
   "vimls",
   "yamlls",
+  "cssls",
+  "dartls",
+  "dotls",
+  "eslint",
+  "glint",
+  "graphql",
+  "java_language_server",
+  "kotlin_language_server",
+  "perlpls",
+  "phpactor",
+  "quick_lint_js",
+  "r_language_server",
+  "rust_analyzer",
+  "solang",
+  "solidity_ls",
+  "sqls",
+  "terraform_lsp",
+  "terraformls",
+  "theme_check",
+  "vimls",
 }
 for _, lsp in ipairs(servers) do
   lspconfig[lsp].setup {
@@ -309,6 +419,7 @@ end
 -- Treesitter configuration
 -- Parsers must be installed manually via :TSInstall
 require('nvim-treesitter.configs').setup {
+  --ensure_installed = "maintained",
   ensure_installed = {
   "bash",
   "cmake",
@@ -345,6 +456,11 @@ require('nvim-treesitter.configs').setup {
   "typescript",
   "vim",
   "yaml",
+  },
+  rainbow = {
+    enable = true,
+    extended_mode = true,
+    max_file_lines = nil,
   },
   highlight = {
     enable = true, -- false will disable the whole extension
@@ -395,150 +511,52 @@ require('nvim-treesitter.configs').setup {
     },
   },
 }
+require('luasnip.loaders.from_vscode').lazy_load()
 
--- Diagnostic keymaps
-vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float)
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
-vim.keymap.set('n', '<leader>g', vim.diagnostic.setloclist)
+local cmp = require('cmp')
+local luasnip = require('luasnip')
 
--- luasnip setup
-local luasnip = require 'luasnip'
--- lspkind setup
-local lspkind = require'lspkind'
+local select_opts = {behavior = cmp.SelectBehavior.Select}
 
--- nvim-cmp setup
-local cmp = require 'cmp'
- cmp.setup({
+cmp.setup({
   snippet = {
-      -- REQUIRED - you must specify a snippet engine
-      expand = function(args)
-        vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
-         require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
-        -- require('snippy').expand_snippet(args.body) -- For `snippy` users.
-        -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
-      end,
-    },
-    window = {
-       completion = cmp.config.window.bordered(),
-       documentation = cmp.config.window.bordered(),
-    },
-    --mapping = cmp.mapping.preset.insert({
-    --  ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-    --  ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    --  ['<C-S-Space>'] = cmp.mapping.complete(),
-    --  ['<C-e>'] = cmp.mapping.abort(),
-    --  ['<CR>'] = cmp.mapping.confirm({ select = false }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-    --}),
-  --mapping = cmp.mapping.preset.insert({
-  --        ['<Tab>'] = function(fallback)
-  --          if cmp.visible() then
-  --            cmp.select_next_item()
-  --          else
-  --            fallback()
-  --          end
-  --        end,
-  --        ['<S-Tab>'] = function(fallback)
-  --          if cmp.visible() then
-  --            cmp.select_prev_item()
-  --          else
-  --            fallback()
-  --          end
-  --        end,
-  --        ['<CR>'] = cmp.mapping.confirm({ select = true }),
-  --        ['<C-e>'] = cmp.mapping.abort(),
-  --        ['<Esc>'] = cmp.mapping.close(),
-  --        ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-  --        ['<C-f>'] = cmp.mapping.scroll_docs(4),
-  --      }),
-    mapping = {
-    ['<C-p>'] = cmp.mapping.select_prev_item(),
-    ['<C-n>'] = cmp.mapping.select_next_item(),
-    ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-    ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete(),
-    ['<C-e>'] = cmp.mapping.close(),
-    ['<CR>'] = cmp.mapping.confirm {
-      behavior = cmp.ConfirmBehavior.Replace,
-      select = true,
-    },
-    ['<Tab>'] = function(fallback)
-      if cmp.visible() then
-        cmp.select_next_item()
-      elseif luasnip.expand_or_jumpable() then
-        luasnip.expand_or_jump()
-      else
-        fallback()
-      end
-    end,
-    ['<S-Tab>'] = function(fallback)
-      if cmp.visible() then
-        cmp.select_prev_item()
-      elseif luasnip.jumpable(-1) then
-        luasnip.jump(-1)
-      else
-        fallback()
-      end
-    end,
+    expand = function(args)
+      luasnip.lsp_expand(args.body)
+    end
   },
-  enabled = function ()
-    return vim.api.nvim_buf_get_option(0, "buftype") ~= "prompt"
-      or require("cmp_dap").is_dap_buffer()
-    end, 
-  formatting = {
-    format = lspkind.cmp_format({
-      mode = "symbol_text",
-      menu = ({
-        nvim_lsp = "[LSP]",
-        ultisnips = "[US]",
-        nvim_lua = "[Lua]",
-        path = "[Path]",
-        buffer = "[Buffer]",
-        emoji = "[Emoji]",
-	      omni = "[Omni]",
-      }),
-    }),
-  },
-    sources = cmp.config.sources({
-      { name = 'nvim_lsp' },
-      { name = 'vsnip' }, -- For vsnip users.
-      { name = 'luasnip' }, -- For luasnip users.
-      -- { name = 'ultisnips' }, -- For ultisnips users.
-      -- { name = 'snippy' }, -- For snippy users.
-      {name = 'cmp_tabnine'},
-      {name = 'git'},
-      {name = 'dap'},
-      {name = 'spell'},
-      {name = 'path'},
-      {name = 'cmdline'},
-			{
-				name = "dictionary",
-				keyword_length = 2,
-			},
-      {
-        name = 'buffer',
-        -- Correct:
-        option = {
-          keyword_pattern = [[\k\+]],
-        }
-      },
-      { name = 'nvim_lsp_document_symbol' },
-      { name = 'nvim_lsp_signature_help' },
-      { name = 'cmdline_history' },
-      { 
-         name = 'fuzzy_buffer' ,
-         opts = {
-            get_bufnrs = function()  
-            local bufs = {}
-            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-              local buftype = vim.api.nvim_buf_get_option(buf, 'buftype')
-              if buftype ~= 'nofile' and buftype ~= 'prompt' then
-                bufs[#bufs + 1] = buf
-              end
+  sources = {
+    {name = 'path'},
+    {name = 'nvim_lsp', keyword_length = 3},
+    {name = 'buffer', keyword_length = 3},
+    {name = 'luasnip', keyword_length = 2},
+    { name = 'vsnip' }, -- For vsnip users.
+    {name = 'cmp_tabnine'},
+    {name = 'git'},
+    {name = 'dap'},
+    {name = 'spell'},
+    {name = 'path'},
+    {name = 'cmdline'},
+		{
+			name = "dictionary",
+			keyword_length = 2,
+		},
+    { name = 'nvim_lsp_document_symbol' },
+    { name = 'nvim_lsp_signature_help' },
+    { name = 'cmdline_history' },
+    { 
+       name = 'fuzzy_buffer' ,
+       opts = {
+          get_bufnrs = function()  
+          local bufs = {}
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            local buftype = vim.api.nvim_buf_get_option(buf, 'buftype')
+            if buftype ~= 'nofile' and buftype ~= 'prompt' then
+              bufs[#bufs + 1] = buf
             end
-            return bufs
-            end
-         },
+          end
+          return bufs
+          end
+       },
       },
     { name = 'fuzzy_path', options = {fd_timeout_msec = 1500} },
     { name = 'rg' },
@@ -563,61 +581,80 @@ local cmp = require 'cmp'
             --dict = '/usr/share/dict/words'
         }
     },
-    })
-  })
+  },
+  window = {
+    documentation = cmp.config.window.bordered()
+  },
+  formatting = {
+    fields = {'menu', 'abbr', 'kind'},
+    format = function(entry, item)
+      local menu_icon = {
+        nvim_lsp = '?',
+        luasnip = '?',
+        buffer = '�',
+        path = '??',
+      }
 
-  -- Set configuration for specific filetype.
-  cmp.setup.filetype('gitcommit', {
-    sources = cmp.config.sources({
-      { name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it.
-    }, {
-      { name = 'buffer' },
-    })
-  })
+      item.menu = menu_icon[entry.source.name]
+      return item
+    end,
+  },
+  mapping = {
+    ['<Up>'] = cmp.mapping.select_prev_item(select_opts),
+    ['<Down>'] = cmp.mapping.select_next_item(select_opts),
 
-  require'cmp_zsh'.setup {
-    zshrc = true, -- Source the zshrc (adding all custom completions). default: false
-    filetypes = { "deoledit", "zsh" } -- Filetypes to enable cmp_zsh source. default: {"*"}
-  }
-  -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
-  cmp.setup.cmdline('/', {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = {
-      { name = 'buffer' }
-    }
-  })
+    ['<C-p>'] = cmp.mapping.select_prev_item(select_opts),
+    ['<C-n>'] = cmp.mapping.select_next_item(select_opts),
 
-  -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-  cmp.setup.cmdline(':', {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = cmp.config.sources({
-      { name = 'path' }
-    }, {
-      { name = 'cmdline' }
-    })
-  })
+    ['<C-u>'] = cmp.mapping.scroll_docs(-4),
+    ['<C-f>'] = cmp.mapping.scroll_docs(4),
 
-  cmp.setup.cmdline('/', {
-    sources = cmp.config.sources({
-      { name = 'fuzzy_buffer' }
-    })
-  })
+    ['<C-e>'] = cmp.mapping.abort(),
+    ['<CR>'] = cmp.mapping.confirm({select = true}),
 
-require("cmp_git").setup()
+    ['<C-d>'] = cmp.mapping(function(fallback)
+      if luasnip.jumpable(1) then
+        luasnip.jump(1)
+      else
+        fallback()
+      end
+    end, {'i', 's'}),
 
-local tabnine = require('cmp_tabnine.config')
-tabnine:setup({
-	max_lines = 1000;
-	max_num_results = 20;
-	sort = true;
-	run_on_every_keystroke = true;
-	snippet_placeholder = '..';
-	ignored_file_types = { -- default is not to ignore
-		-- uncomment to ignore in lua:
-		-- lua = true
-	};
-	show_prediction_strength = false;
+    ['<C-b>'] = cmp.mapping(function(fallback)
+      if luasnip.jumpable(-1) then
+        luasnip.jump(-1)
+      else
+        fallback()
+      end
+    end, {'i', 's'}),
+
+    ['<Tab>'] = cmp.mapping(function(fallback)
+      local col = vim.fn.col('.') - 1
+
+      if cmp.visible() then
+        cmp.select_next_item(select_opts)
+      elseif col == 0 or vim.fn.getline('.'):sub(col, col):match('%s') then
+        fallback()
+      else
+        cmp.complete()
+      end
+    end, {'i', 's'}),
+
+    ['<S-Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item(select_opts)
+      else
+        fallback()
+      end
+    end, {'i', 's'}),
+  },
 })
+-- Diagnostic keymaps
+vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float)
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
+vim.keymap.set('n', '<leader>g', vim.diagnostic.setloclist)
+
 
 local dap = require('dap')
 
@@ -778,52 +815,4 @@ require("nvim-dap-virtual-text").setup {
 		debug = false,
 	})
 
-require('lspkind').init({
-    -- DEPRECATED (use mode instead): enables text annotations
-    --
-    -- default: true
-    -- with_text = true,
 
-    -- defines how annotations are shown
-    -- default: symbol
-    -- options: 'text', 'text_symbol', 'symbol_text', 'symbol'
-    mode = 'symbol_text',
-
-    -- default symbol map
-    -- can be either 'default' (requires nerd-fonts font) or
-    -- 'codicons' for codicon preset (requires vscode-codicons font)
-    --
-    -- default: 'default'
-    preset = 'codicons',
-
-    -- override preset symbols
-    --
-    -- default: {}
-    symbol_map = {
-      Text = "",
-      Method = "",
-      Function = "",
-      Constructor = "",
-      Field = "ﰠ",
-      Variable = "",
-      Class = "ﴯ",
-      Interface = "",
-      Module = "",
-      Property = "ﰠ",
-      Unit = "塞",
-      Value = "",
-      Enum = "",
-      Keyword = "",
-      Snippet = "",
-      Color = "",
-      File = "",
-      Reference = "",
-      Folder = "",
-      EnumMember = "",
-      Constant = "",
-      Struct = "פּ",
-      Event = "",
-      Operator = "",
-      TypeParameter = ""
-    },
-})

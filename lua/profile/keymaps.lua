@@ -165,6 +165,11 @@ keymap('n', '<F5>', '<cmd>lua require"dap".continue()<CR>', opts)
 keymap('n', '<F8>', '<cmd>lua require"dap".step_over()<CR>', opts)
 keymap('n', '<F9>', '<cmd>lua require"dap".step_into()<CR>', opts)
 keymap('n', '<F10>', '<cmd>lua require"dap".step_out()<CR>', opts)
+keymap('n', '<leader>dc', '<cmd>lua require"dap".continue()<CR>', opts)
+keymap('n', '<leader>do', '<cmd>lua require"dap".step_over()<CR>', opts)
+keymap('n', '<leader>di', '<cmd>lua require"dap".step_into()<CR>', opts)
+keymap('n', '<leader>du', '<cmd>lua require"dap".step_out()<CR>', opts)
+keymap('n', 'b', '<cmd>lua require"dap".toggle_breakpoint()<CR>', opts)
 keymap('n', '<leader>db', '<cmd>lua require"dap".toggle_breakpoint()<CR>', opts)
 keymap('n', '<leader>dB', '<cmd>lua require"dap".set_breakpoint(vim.fn.input("Breakpoint condition: "))<CR>',opts)
 keymap('n', '<leader>dp', '<cmd>lua require"dap".set_breakpoint(nil, nil, vim.fn.input("Log point message: "))<CR>',opts)
@@ -179,5 +184,5 @@ keymap('n', '<leader>dv', '<cmd>lua require"telescope".extensions.dap.variables{
 keymap('n', '<leader>df', '<cmd>lua require"telescope".extensions.dap.frames{}<CR>', opts)
 
 -- local hitory
-keymap('n', '<F6>', ':LocalHistoryToggle<CR>', opts)
+--keymap('n', '<F3>', ':LocalHistoryToggle<CR>', opts)
 

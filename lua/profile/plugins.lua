@@ -87,10 +87,10 @@ packer.startup(function()
         'folke/tokyonight.nvim',
         branch = 'main',
     }
-    use {
-    'dinhhuy258/vim-local-history', 
-    branch = 'master', 
-  } -- hitory
+  --  use {
+  --  'dinhhuy258/vim-local-history', 
+  --  branch = 'master', 
+  --} -- hitory
 
   use 'ryanoasis/vim-devicons'
   use {
@@ -107,7 +107,7 @@ packer.startup(function()
   use 'hexdigest/gounit-vim'
   -- UI to select things (files, grep results, open buffers...)
   use { 'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' } }
-  use { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' }
+  use {'nvim-telescope/telescope-fzf-native.nvim', run = 'make' }
 
     -- Highlight, edit, and navigate code using a fast incremental parsing library
   use 'nvim-treesitter/nvim-treesitter' 
@@ -115,6 +115,11 @@ packer.startup(function()
   use 'nvim-treesitter/nvim-treesitter-textobjects'
   use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
   use 'williamboman/nvim-lsp-installer' -- auto install  :LspInstall
+  use 'j-hui/fidget.nvim' --Standalone UI for nvim-lsp progress. Eye candy for the impatient.
+  use({
+    'weilbith/nvim-code-action-menu',
+    cmd = 'CodeActionMenu',
+  })
 
   use 'brooth/far.vim' -- search and replace plugin
 
@@ -135,7 +140,8 @@ packer.startup(function()
 
   use 'saadparwaiz1/cmp_luasnip'
   use 'L3MON4D3/LuaSnip' -- Snippets plugin
-  use 'onsails/lspkind.nvim'
+  --use 'onsails/lspkind.nvim'
+  use "rafamadriz/friendly-snippets"
 
   -- cmp extensions
   use 'hrsh7th/cmp-nvim-lsp'
@@ -175,4 +181,6 @@ packer.startup(function()
   use 'theHamsta/nvim-dap-virtual-text'
   use 'rcarriga/cmp-dap'
   use 'nvim-telescope/telescope-dap.nvim'
+
+  use 'rcarriga/nvim-notify'
 end)
